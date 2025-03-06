@@ -1,9 +1,21 @@
 import socket
-import time
 from threading import Thread
 
+class PacketException(Exception):
+    def __init__(self, packet_id):
+        self.packet_id = packet_id;
+        self.message = f"Pacote com ID {packet_id} não encontrado.";
+        super().__init__(self.message);
+
+class PacketMeta(type):
+    def __init__(cls, name, bases, dct):
+        super().__init__(name, bases, dct);
+        if (hasattr(cls, 'id')):
+            PacketProtocol.register(cls);
+
 #Modelo de Pacote: [ID - 1 Byte] [CONTEUDO]
-class Packet:
+class Packet(metaclass=PacketMeta):
+    
     def __init__(self, id=None):
         self.id = id
         
@@ -16,9 +28,28 @@ class Packet:
     def handle(self):
         raise NotImplementedError
     
+class PacketProtocol:
+    
+    packets = {}
+
+    @staticmethod    
+    def register(packet: Packet):
+        PacketProtocol.packets[packet.id] = packet
+        
+    @staticmethod
+    def getPacket(id):
+        print(PacketProtocol.packets)
+        if (id in PacketProtocol.packets):
+            return PacketProtocol.packets[id];
+        else:
+            raise PacketException(id)
+    
 class PacketMessage(Packet):
+    
+    id = 1
+    
     def __init__(self, message=""):
-        super().__init__(1);
+        super().__init__(self.id);
         self.message = message;
         
     def serialize(self):
@@ -54,13 +85,11 @@ class ClientConnection:
             try:
                 
                 data = self.client_socket.recv(1024);
+                packet_id = int.from_bytes(data[0:1], 'big');
+                packet = PacketProtocol.getPacket(packet_id);
+                packet.deserialize(data);
+                #...#
                 
-                if not data:
-                    self.isRunning = False;
-                    self.disconnect();
-                    break;
-                
-                print(data);
             except Exception as e:
                 print(f"Error: {e}");
 
