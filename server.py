@@ -17,8 +17,8 @@ class Packet:
         raise NotImplementedError
     
 class PacketMessage(Packet):
-    def __init__(self, id=1, message=""):
-        super().__init__(id);
+    def __init__(self, message=""):
+        super().__init__(1);
         self.message = message;
         
     def serialize(self):
@@ -38,7 +38,11 @@ class ClientConnection:
         Thread(target=self.run).start();
 
     def sendPacket(self, packet: Packet):
-        ...
+        try:
+            packet_data = packet.serialize();
+            self.client_socket.send(packet_data);
+        except Exception as e:
+            print(f"Error: {e}");
         
     def disconnect(self):
         if (self.isRunning):
