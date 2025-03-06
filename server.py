@@ -7,6 +7,10 @@ class PacketException(Exception):
         self.message = f"Pacote com ID {packet_id} não encontrado.";
         super().__init__(self.message);
 
+class PacketListener:
+    def __init__(self, server):
+        self.server = server
+
 class PacketMeta(type):
     def __init__(cls, name, bases, dct):
         super().__init__(name, bases, dct);
@@ -38,7 +42,6 @@ class PacketProtocol:
         
     @staticmethod
     def getPacket(id):
-        print(PacketProtocol.packets)
         if (id in PacketProtocol.packets):
             return PacketProtocol.packets[id];
         else:
@@ -58,8 +61,11 @@ class PacketMessage(Packet):
         return packet_id_bytes + message_bytes
     
     def deserialize(self, data):
-        self.id = data[0];
-        self.message = data[1:];
+        self.id = int.from_bytes(data[0:1], 'big');
+        self.message = data[1:].decode('utf-8');
+        
+    def handle(self):
+        print(self.message);
 
 class ClientConnection:
     def __init__(self, client_socket: socket, addr):
@@ -86,9 +92,9 @@ class ClientConnection:
                 
                 data = self.client_socket.recv(1024);
                 packet_id = int.from_bytes(data[0:1], 'big');
-                packet = PacketProtocol.getPacket(packet_id);
+                packet = PacketProtocol.getPacket(packet_id)();
                 packet.deserialize(data);
-                #...#
+                packet.handle();
                 
             except Exception as e:
                 print(f"Error: {e}");
