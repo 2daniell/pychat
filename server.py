@@ -2,8 +2,33 @@ import socket
 import time
 from threading import Thread
 
+#Modelo de Pacote: [ID - 1 Byte] [CONTEUDO]
 class Packet:
-    ...
+    def __init__(self, id=None):
+        self.id = id
+        
+    def serialize(self):
+        raise NotImplementedError
+    
+    def deserialize(self):
+        raise NotImplementedError
+    
+    def handle(self):
+        raise NotImplementedError
+    
+class PacketMessage(Packet):
+    def __init__(self, id=1, message=""):
+        super().__init__(id);
+        self.message = message;
+        
+    def serialize(self):
+        packet_id_bytes = self.id.to_bytes(1, 'big');
+        message_bytes = self.message.encode('utf-8');
+        return packet_id_bytes + message_bytes
+    
+    def deserialize(self, data):
+        self.id = data[0];
+        self.message = data[1:];
 
 class ClientConnection:
     def __init__(self, client_socket: socket, addr):
