@@ -20,11 +20,18 @@ class Screen:
             
             self.messages = ft.ListView(expand=True, spacing=10)
             input_field = ft.TextField(label="Digite sua mensagem", expand=True)
-            send_button = ft.ElevatedButton("Enviar")
+            send_button = ft.ElevatedButton("Enviar", on_click=lambda _: self.sendMessage(input_field))
             
             page.add(self.messages, ft.Row([input_field, send_button]))
-        
+            
         ft.app(target=main);
+        
+    def sendMessage(self, input_field):
+        message = input_field.value.strip();
+        if (message):
+            EventDispatcher.dispatch("send_message", message);
+            input_field.value = "";
+            self.addMessage(f'Você: {message}');
     
     def addMessage(self, message):
         if (self.messages):

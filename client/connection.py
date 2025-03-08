@@ -66,24 +66,24 @@ class PacketMessage(Packet):
 
 class Connection:
     def __init__(self, host="127.0.0.1", port=8080):
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
-        self.client_socket.connect((host, port));
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
+        self.socket.connect((host, port));
         Thread(target=self.listen).start();
         
     def sendPacket(self, packet: Packet):
         try:
             packet_data = packet.serialize();
-            self.client_socket.send(packet_data);
+            self.socket.send(packet_data);
         except Exception as e:
             print(f"Error: {e}");
         
     def listen(self):
         while(True):
-            data = self.client_socket.recv(1024);
+            data = self.socket.recv(1024);
             packet_id = int.from_bytes(data[0:1], 'big');
             packet = PacketProtocol.getPacket(packet_id)();
             packet.deserialize(data);
             packet.handle();
             
     def close(self):
-        self.client_socket.close();
+        self.socket.close();
