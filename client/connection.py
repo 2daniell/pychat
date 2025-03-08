@@ -1,5 +1,6 @@
 import socket
 from threading import Thread
+from events import EventDispatcher
 
 class PacketException(Exception):
     def __init__(self, packet_id):
@@ -61,7 +62,7 @@ class PacketMessage(Packet):
         self.message = data[1:].decode('utf-8');
         
     def handle(self):
-        print(self.message);
+        EventDispatcher.dispatch("on_message", self.message);
 
 class Connection:
     def __init__(self, host="127.0.0.1", port=8080):

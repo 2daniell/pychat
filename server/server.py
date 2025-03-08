@@ -1,5 +1,6 @@
 import socket
 from threading import Thread
+import time
 
 class PacketException(Exception):
     def __init__(self, packet_id):
@@ -116,6 +117,13 @@ class Server:
             self.clients.append(client);
             
             print(f'Cliente {addr} conectado.');
+            
+            time.sleep(10)
+            
+            for i in range(5):
+                packet = PacketMessage(f"Mensagem {i}");
+                client.sendPacket(packet);
+                time.sleep(3);
     
 if (__name__ == "__main__"):
     server = Server()
